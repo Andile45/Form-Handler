@@ -1,46 +1,41 @@
-import FormHandler from "./FormHandler.js";
+// Create instance of FormHandler
+const handler = new FormHandler("userForm", "alert-container");
 
-document.addEventListener("DOMContentLoaded", () => {
-    const form = document.getElementById("userForm");
-    const alertBox = document.getElementById("alertBox");
+// Handle Form Submit
+handler.form.addEventListener("submit", (e) => {
+  e.preventDefault();
 
-    form.addEventListener("submit", (event) => {
-        event.preventDefault();
+  const data = {
+    fullName: document.getElementById("fullName").value.trim(),
+    email: document.getElementById("email").value.trim(),
+    password: document.getElementById("password").value.trim()
+  };
 
-        // Get input values
-        const name = document.getElementById("name").value.trim();
-        const email = document.getElementById("email").value.trim();
-        const password = document.getElementById("password").value.trim();
+  const errors = handler.validateForm(data);
 
-        // Create instance
-        const formHandler = new FormHandler(name, email, password);
+  if (errors.length > 0) {
+    handler.showAlert(errors.join("<br>"), "danger");
+  } else {
+    handler.saveToLocalStorage(data);
+    handler.showAlert("✅ Data saved successfully!", "success");
+    console.log("Saved Data:", handler.getFormData());
+    handler.form.reset();
+  }
+});
 
-        // Validate
-        const validation = formHandler.validateForm();
+// ✅ Handle "View My Information" button
+document.getElementById("viewInfoBtn").addEventListener("click", () => {
+  const userData = handler.getFormData();
+  const outputDiv = document.getElementById("userOutput");
 
-        if (!validation.valid) {
-            showAlert(validation.message, "danger");
-            return;
-        }
-
-        // Save to localStorage
-        formHandler.saveToLocalStorage();
-        showAlert("Form submitted successfully!", "success");
-
-        // Clear inputs
-        form.reset();
-
-        // Retrieve and log data
-        FormHandler.getFormData();
-    });
-
-    // Helper: Show Bootstrap alert
-    function showAlert(message, type) {
-        alertBox.innerHTML = `
-            <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        `;
-    }
+  if (userData) {
+    outputDiv.innerHTML = `
+      <h4>Saved Information</h4>
+      <p><strong>Full Name:</strong> ${userData.fullName}</p>
+      <p><strong>Email:</strong> ${userData.email}</p>
+     
+    `;
+  } else {
+    outputDiv.innerHTML = `<p class="text-danger">⚠️ No data found. Please register first.</p>`;
+  }
 });
